@@ -1,30 +1,81 @@
-const express = require('express')
-var cors = require('cors')
-const app = express()
-const port = 3000
+var express = require('express');
+var app = express();
 
-app.use(cors())
+const { Sequelize, DataTypes } = require('sequelize');
 
-app.get('/', (req, res) => {
-    res.send('Hello World!')
-})
+const sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: 'database.sqlite'
+});
 
-app.get('/sound/:name', (req, res) => {
-    const {name} = req.params
-    console.log(name)
-
-    if(name == "dog") {
-        res.json({'sound': '멍멍'})
-    } else if(name == "cat") {
-        res.json({'sound': '야옹'})
-    } else if(name == "pig") {
-        res.json({'sound': '꿀꿀'})
-    } else {
-        res.json({'sound': '알수없음'})
+const Comments = sequelize.define('Comments', {
+        // Model attributes are defined here
+    content: {
+        type: DataTypes.STRING,
+        allowNull: false,
     }
-})
+},  {
+        // Other model options go here
+});
+
+console.log(Comments === sequelize.models.Comments); // true
+
+(async() => {
+await Comments.sync();
+})();
 
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
-})
+app.use(express.json()) // for parsing application/json
+app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
+
+// set the view engine to ejs
+app.set('view engine', 'ejs');
+
+// use res.render to load up an ejs view file
+
+// index page
+app.get('/', async function (req, res) {
+    const comments = await Comments.findAll();
+    res.render('index', { comments: comments });
+});
+
+
+app.post('/create/', async function (req, res) {
+    console.log(req.body)
+
+    const { content } = req.body;
+
+    const jane = await Comments.create({ content: content});
+    console.log("Jane's auto-generated ID:", jane.id);
+
+    res.redirect('/');
+});
+
+app.post('/update/:id', async function (req, res) {
+    const { content } = req.body;
+    const { id } = req.params;
+
+    await Comments.update({ content: content },
+        {
+          where: {
+            id: id,
+          }
+    });
+
+    res.redirect('/');
+});
+
+app.post('/delete/:id', async function (req, res) {
+    const { id } = req.params;
+
+    await Comments.destroy({
+        where: {
+          id: id,
+        },
+      });
+
+    res.redirect('/');
+});
+
+app.listen(3000);
+console.log('Server is listening on port 3000');

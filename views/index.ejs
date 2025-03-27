@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 페이지</title>
+</head>
+
+<body>
+    <h1>댓글목록</h1>
+    <ul>
+        <% for(var i=0; i<comments.length; i++){ %>
+            <li> <%= comments[i].content %></li>
+            <form action="/update/<%= comments[i].id %>" method="post">
+                <input type="text" name="content">
+                <input type="submit" value="submit">
+            </form>
+            <form action="/delete/<%= comments[i].id %>" method="post">
+                <input type="submit" value="del">
+            </form>
+        <% } %>
+    </ul>
+    <hr>
+    <form action="/create" method="post">
+        <input type="text" id="lname" name="content"><br>
+        <input type="submit" value="submit">
+    </form>
+</body>
+
+</html>
